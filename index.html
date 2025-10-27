@@ -7,30 +7,105 @@
 </head>
 <body>
   <h1>Juego Rullo - Generador de Tableros</h1>
+  <style>
+    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
+    .controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
+    table { border-collapse: collapse; table-layout: fixed; }
+    th, td { border: 1px solid #666; padding: 6px; width:48px; text-align:center; }
+    td.celda { cursor: pointer; user-select: none; }
+    td.celda.inactive { background: #eee; color: #999; }
+    td.celda.solution { outline: 3px solid rgba(0,160,0,0.12); }
+    th.target.ok { background: #dff0d8; }
+    th.target { background: #f5f5f5; }
+    #mensaje { margin-top:10px; font-weight:600 }
+    button { padding:6px 10px }
+  </style>
 
-  <div>
-    <label>Filas:</label>
-    <input type="number" id="filas" value="5" min="3" max="8">
-    <label>Columnas:</label>
-    <input type="number" id="columnas" value="5" min="3" max="8">
-    <label>Dificultad:</label>
-    <select id="dificultad">
-      <option value="0.45">Fácil</option>
-      <option value="0.55" selected>Media</option>
-      <option value="0.65">Difícil</option>
-    </select>
-    <label>Rango:</label>
-    <select id="rango">
-      <option value="1-9" selected>1–9</option>
-      <option value="1-6">1–6</option>
-      <option value="2-9">2–9</option>
-    </select>
+  <div class="controls">
+    <label>Filas: <input type="number" id="filas" value="5" min="3" max="8"></label>
+    <label>Columnas: <input type="number" id="columnas" value="5" min="3" max="8"></label>
+    <label>Dificultad:
+      <select id="dificultad">
+        <option value="0.45">Fácil</option>
+        <option value="0.55" selected>Media</option>
+        <option value="0.65">Difícil</option>
+      </select>
+    </label>
+    <label>Rango:
+      <select id="rango">
+        <option value="1-9" selected>1–9</option>
+        <option value="1-6">1–6</option>
+        <option value="2-9">2–9</option>
+      </select>
+    </label>
     <button id="btnNuevo">Nuevo tablero</button>
+    <button id="btnSolucion">Mostrar solución</button>
   </div>
 
-  <p>Objetivo: crear tableros y mostrarlos. Las celdas se pueden hacer clic, pero no se valida todavía si ganaste.</p>
-
   <div id="tablero"></div>
+  <div id="mensaje"></div>
+
+  <h2>Solucionador (5x5) — carga manual del tablero</h2>
+  <p>Introduce los 25 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
+  <div id="solverArea">
+    <table id="solverGrid">
+      <tr>
+        <th></th>
+        <th><input type="number" id="colT0" class="targetIn" value="" /></th>
+        <th><input type="number" id="colT1" class="targetIn" value="" /></th>
+        <th><input type="number" id="colT2" class="targetIn" value="" /></th>
+        <th><input type="number" id="colT3" class="targetIn" value="" /></th>
+        <th><input type="number" id="colT4" class="targetIn" value="" /></th>
+      </tr>
+      <tr>
+        <th><input type="number" id="rowT0" class="targetIn" value="" /></th>
+        <td><input type="number" id="cell00" class="cellIn" /></td>
+        <td><input type="number" id="cell01" class="cellIn" /></td>
+        <td><input type="number" id="cell02" class="cellIn" /></td>
+        <td><input type="number" id="cell03" class="cellIn" /></td>
+        <td><input type="number" id="cell04" class="cellIn" /></td>
+      </tr>
+      <tr>
+        <th><input type="number" id="rowT1" class="targetIn" value="" /></th>
+        <td><input type="number" id="cell10" class="cellIn" /></td>
+        <td><input type="number" id="cell11" class="cellIn" /></td>
+        <td><input type="number" id="cell12" class="cellIn" /></td>
+        <td><input type="number" id="cell13" class="cellIn" /></td>
+        <td><input type="number" id="cell14" class="cellIn" /></td>
+      </tr>
+      <tr>
+        <th><input type="number" id="rowT2" class="targetIn" value="" /></th>
+        <td><input type="number" id="cell20" class="cellIn" /></td>
+        <td><input type="number" id="cell21" class="cellIn" /></td>
+        <td><input type="number" id="cell22" class="cellIn" /></td>
+        <td><input type="number" id="cell23" class="cellIn" /></td>
+        <td><input type="number" id="cell24" class="cellIn" /></td>
+      </tr>
+      <tr>
+        <th><input type="number" id="rowT3" class="targetIn" value="" /></th>
+        <td><input type="number" id="cell30" class="cellIn" /></td>
+        <td><input type="number" id="cell31" class="cellIn" /></td>
+        <td><input type="number" id="cell32" class="cellIn" /></td>
+        <td><input type="number" id="cell33" class="cellIn" /></td>
+        <td><input type="number" id="cell34" class="cellIn" /></td>
+      </tr>
+      <tr>
+        <th><input type="number" id="rowT4" class="targetIn" value="" /></th>
+        <td><input type="number" id="cell40" class="cellIn" /></td>
+        <td><input type="number" id="cell41" class="cellIn" /></td>
+        <td><input type="number" id="cell42" class="cellIn" /></td>
+        <td><input type="number" id="cell43" class="cellIn" /></td>
+        <td><input type="number" id="cell44" class="cellIn" /></td>
+      </tr>
+    </table>
+    <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+      <button id="btnCopiarActual">Copiar tablero actual</button>
+  <button id="btnResolver">Resolver</button>
+  <button id="btnAplicarSol">Aplicar solución (marcar)</button>
+  <button id="btnCargarEnJuego">Cargar en juego</button>
+      <span id="solverMsg" style="margin-left:8px; font-weight:600"></span>
+    </div>
+  </div>
 
   <script src="script.js"></script>
 </body>
