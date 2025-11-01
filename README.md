@@ -81,15 +81,6 @@ h(n) = \sum_{filas} |sumaFila - objetivoFila| + \sum_{columnas} |sumaColumna - o
 - 🎨 **Tema azul moderno:** interfaz limpia, con efectos hover y sombras.
 
 ---
-
-## 📁 Estructura del Proyecto
-Proyecto-IA/
-├── index.html # Interfaz completa con secciones 5x5, 6x6, 7x7, 8x8
-├── styles.css # Tema azul + estilo responsivo
-└── script.js # Lógica de búsqueda, control del juego y heurística voraz
-
----
-
 ## 🕹️ Uso
 
 1. Abre `index.html` en tu navegador.  
