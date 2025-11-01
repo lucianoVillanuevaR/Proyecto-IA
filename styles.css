@@ -28,7 +28,6 @@ html, body{
   margin: 0;
 }
 
-/* pantalla */
 .chooser{
   height:100vh;
   display:flex;
@@ -76,7 +75,6 @@ html, body{
 }
 .hidden{ display:none; }
 
-/* archivo entero  */
 body > .page{
   max-width:1080px;
   margin:0 auto;
@@ -84,7 +82,6 @@ body > .page{
 }
 .controls{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
 
-/* para volver- */
 #btnBack{
   background:#fff;
   border:1px solid var(--azul-200);
@@ -99,7 +96,6 @@ body > .page{
   transform: translateY(-1px);
 }
 
-/* Tablas*/
 table{
   border-collapse: separate;
   border-spacing: 0;
@@ -123,7 +119,6 @@ th:last-child, td:last-child{ border-right: none !important; }
 th.target{ background: linear-gradient(180deg, #f5f7fb, #eef3fb); }
 th.target.ok{ background:#dff0d8; }
 
-/* --- Celdas del juego --- */
 td.celda{
   cursor: pointer;
   user-select: none;
