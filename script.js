@@ -1,6 +1,4 @@
-// Solucionador 5x5 y tablero jugable
 
-// Lee la cuadrícula 5x5 y objetivos desde la UI del solucionador
 function leerTablero5x5DesdeUI() {
   const nums = Array.from({ length: 5 }, () => Array(5).fill(0));
   const rowT = Array(5).fill(null);
@@ -21,7 +19,6 @@ function leerTablero5x5DesdeUI() {
   return { nums, rowT, colT };
 }
 
-// Muestra la máscara solución (añade/quita la clase .solution en los inputs)
 function mostrarSolucionEnUI(mask) {
   for (let r = 0; r < 5; r++) {
     for (let c = 0; c < 5; c++) {
@@ -33,7 +30,6 @@ function mostrarSolucionEnUI(mask) {
   }
 }
 
-// Backtracking solver (devuelve la primera máscara encontrada o null)
 function encontrarSolucion5x5(nums, rowT, colT) {
   // exigir objetivos completos
   for (let i = 0; i < 5; i++) if (rowT[i] === null || colT[i] === null) return null;
@@ -69,12 +65,10 @@ function encontrarSolucion5x5(nums, rowT, colT) {
     const val = nums[r][c];
     const { remRow, remCol } = computeRemainingPotential(pos);
 
-    // Try 0 (not selected)
     if (rowSum[r] + remRow[r] >= rowT[r] && colSum[c] + remCol[c] >= colT[c]) {
       if (backtrack(pos + 1)) return true;
     }
 
-    // Try 1 (selected)
     rowSum[r] += val; colSum[c] += val; mask[r][c] = 1;
     let ok = true;
     if (rowSum[r] > rowT[r] || colSum[c] > colT[c]) ok = false;
@@ -92,7 +86,6 @@ function encontrarSolucion5x5(nums, rowT, colT) {
       if (backtrack(pos + 1)) return true;
     }
 
-    // undo
     rowSum[r] -= val; colSum[c] -= val; mask[r][c] = 0;
     return false;
   }
@@ -101,7 +94,6 @@ function encontrarSolucion5x5(nums, rowT, colT) {
   return found;
 }
 
-// Dibujar tablero jugable (usa datos: numeros, sumasFilas, sumasColumnas, seleccion, solucion)
 function dibujarTablero(div, datos) {
   const { numeros, sumasFilas, sumasColumnas, seleccion } = datos;
   const filas = numeros.length, columnas = numeros[0].length;
@@ -126,7 +118,6 @@ function dibujarTablero(div, datos) {
   html += '</table>';
   div.innerHTML = html;
 
-  // listeners
   div.querySelectorAll('.celda').forEach(td => {
     td.addEventListener('click', () => {
       const f = parseInt(td.dataset.f, 10);
@@ -141,7 +132,6 @@ function dibujarTablero(div, datos) {
   actualizarSumaActualYEstado(datos);
 }
 
-// Recalcula sumas seleccionadas y actualiza DOM y mensaje
 function actualizarSumaActualYEstado(datos) {
   const { numeros, sumasFilas, sumasColumnas, seleccion } = datos;
   const filas = numeros.length, columnas = numeros[0].length;
@@ -175,13 +165,11 @@ function actualizarSumaActualYEstado(datos) {
   if (allRowsOk && allColsOk) mensajeDiv.textContent = '¡Ganaste! Todos los objetivos coinciden.'; else mensajeDiv.textContent = '';
 }
 
-// Event handlers
 document.getElementById('btnResolver').addEventListener('click', () => {
   const { nums, rowT, colT } = leerTablero5x5DesdeUI();
   const solverMsg = document.getElementById('solverMsg');
   solverMsg.textContent = 'Buscando...';
   setTimeout(() => {
-    // use the unified backtrack solver for all sizes
     const sol = backtrackSolve(nums, rowT, colT);
     if (!sol) {
       solverMsg.textContent = 'No se encontró solución (o faltan objetivos).';
@@ -195,9 +183,7 @@ document.getElementById('btnResolver').addEventListener('click', () => {
   }, 10);
 });
 
-// (Apply-solution button removed) 
 
-// Cargar en el área jugable los datos ingresados manualmente
 document.getElementById('btnCargarEnJuego').addEventListener('click', () => {
   const solverMsg = document.getElementById('solverMsg');
   const { nums, rowT, colT } = leerTablero5x5DesdeUI();
@@ -281,7 +267,6 @@ function mostrarSolucion8(mask) {
   }
 }
 
-// Generic but compact backtracking solver (same pruning idea)
 function backtrackSolve(nums, rowT, colT) {
   const N = nums.length; for (let i = 0; i < N; i++) if (rowT[i] === null || colT[i] === null) return null;
   const mask = Array.from({ length: N }, () => Array(N).fill(0)); const rSum = Array(N).fill(0); const cSum = Array(N).fill(0); let found = null;
@@ -302,22 +287,15 @@ function backtrackSolve(nums, rowT, colT) {
   bt(0); return found;
 }
 
-// Handlers 6x6
 const btnR6 = document.getElementById('btnResolver6'); if (btnR6) btnR6.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero6(); const m=document.getElementById('solver6Msg'); m.textContent='Buscando...'; setTimeout(()=>{ const sol=backtrackSolve(nums,rowT,colT); if(!sol){ m.textContent='No se encontró solución.'; window.lastSolution6x6=null; mostrarSolucion6(null);} else { m.textContent='Solución encontrada.'; window.lastSolution6x6=sol; mostrarSolucion6(sol);} },10); });
-// (Apply-solution 6x6 handler removed)
 const btnC6 = document.getElementById('btnCargar6EnJuego'); if (btnC6) btnC6.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero6(); const m=document.getElementById('solver6Msg'); for(let i=0;i<6;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 6 objetivos antes de cargar.'; return;} const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:Array.from({length:6},()=>Array(6).fill(true)),solucion:window.lastSolution6x6||Array.from({length:6},()=>Array(6).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 6x6 cargado en el área jugable.'; });
 
-// Handlers 7x7
 const btnR7 = document.getElementById('btnResolver7'); if (btnR7) btnR7.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero7(); const m=document.getElementById('solver7Msg'); m.textContent='Buscando...'; setTimeout(()=>{ const sol=backtrackSolve(nums,rowT,colT); if(!sol){ m.textContent='No se encontró solución.'; window.lastSolution7x7=null; mostrarSolucion7(null);} else { m.textContent='Solución encontrada.'; window.lastSolution7x7=sol; mostrarSolucion7(sol);} },10); });
-// (Apply-solution 7x7 handler removed)
 const btnC7 = document.getElementById('btnCargar7EnJuego'); if (btnC7) btnC7.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero7(); const m=document.getElementById('solver7Msg'); for(let i=0;i<7;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 7 objetivos antes de cargar.'; return;} const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:Array.from({length:7},()=>Array(7).fill(true)),solucion:window.lastSolution7x7||Array.from({length:7},()=>Array(7).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 7x7 cargado en el área jugable.'; });
 
-// Handlers 8x8
 const btnR8 = document.getElementById('btnResolver8'); if (btnR8) btnR8.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero8(); const m=document.getElementById('solver8Msg'); m.textContent='Buscando...'; setTimeout(()=>{ const sol=backtrackSolve(nums,rowT,colT); if(!sol){ m.textContent='No se encontró solución.'; window.lastSolution8x8=null; mostrarSolucion8(null);} else { m.textContent='Solución encontrada.'; window.lastSolution8x8=sol; mostrarSolucion8(sol);} },10); });
-// (Apply-solution 8x8 handler removed)
 const btnC8 = document.getElementById('btnCargar8EnJuego'); if (btnC8) btnC8.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero8(); const m=document.getElementById('solver8Msg'); for(let i=0;i<8;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 8 objetivos antes de cargar.'; return;} const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:Array.from({length:8},()=>Array(8).fill(true)),solucion:window.lastSolution8x8||Array.from({length:8},()=>Array(8).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 8x8 cargado en el área jugable.'; });
 
-// Chooser: show only selected size and the playable area
 function hideAllSolverSections() {
   const ids = ['solverArea','solver6Area','solver7Area','solver8Area'];
   ids.forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.add('hidden'); });
@@ -337,7 +315,6 @@ function showSection(sectionId) {
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{
-  // ensure initial state
   hideAllSolverSections();
   const c5 = document.getElementById('choose5'); if (c5) c5.addEventListener('click', ()=> showSection('solverArea'));
   const c6 = document.getElementById('choose6'); if (c6) c6.addEventListener('click', ()=> showSection('solver6Area'));
