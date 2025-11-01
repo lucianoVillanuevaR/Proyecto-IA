@@ -4,112 +4,373 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Juego Rullo - 1ra entrega</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Juego Rullo - Generador de Tableros</h1>
-  <style>
-    body { font-family: Arial, Helvetica, sans-serif; margin: 20px; }
-    .controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px }
-    table { border-collapse: collapse; table-layout: fixed; }
-    th, td { border: 1px solid #666; padding: 6px; width:48px; text-align:center; }
-    td.celda { cursor: pointer; user-select: none; }
-    td.celda.inactive { background: #eee; color: #999; }
-    td.celda.solution { outline: 3px solid rgba(0,160,0,0.12); }
-    th.target.ok { background: #dff0d8; }
-    th.target { background: #f5f5f5; }
-    #mensaje { margin-top:10px; font-weight:600 }
-    button { padding:6px 10px }
-  </style>
 
-  <div class="controls">
-    <label>Filas: <input type="number" id="filas" value="5" min="3" max="8"></label>
-    <label>Columnas: <input type="number" id="columnas" value="5" min="3" max="8"></label>
-    <label>Dificultad:
-      <select id="dificultad">
-        <option value="0.45">Fácil</option>
-        <option value="0.55" selected>Media</option>
-        <option value="0.65">Difícil</option>
-      </select>
-    </label>
-    <label>Rango:
-      <select id="rango">
-        <option value="1-9" selected>1–9</option>
-        <option value="1-6">1–6</option>
-        <option value="2-9">2–9</option>
-      </select>
-    </label>
-    <button id="btnNuevo">Nuevo tablero</button>
-    <button id="btnSolucion">Mostrar solución</button>
+  <!-- Chooser inicial: el usuario elige el tamaño del tablero -->
+  <div class="chooser" id="chooser">
+    <div class="chooser-box">
+      <h1>Rullo</h1>
+      <button id="choose5" class="size-btn">5 x 5</button>
+      <button id="choose6" class="size-btn">6 x 6</button>
+      <button id="choose7" class="size-btn">7 x 7</button>
+      <button id="choose8" class="size-btn">8 x 8</button>
+    </div>
   </div>
 
-  <div id="tablero"></div>
-  <div id="mensaje"></div>
+  <div class="page hidden" id="pageContent">
+    <div style="margin-bottom:12px"><button id="btnBack">Volver</button></div>
 
-  <h2>Solucionador (5x5) — carga manual del tablero</h2>
-  <p>Introduce los 25 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
-  <div id="solverArea">
-    <table id="solverGrid">
-      <tr>
-        <th></th>
-        <th><input type="number" id="colT0" class="targetIn" value="" /></th>
-        <th><input type="number" id="colT1" class="targetIn" value="" /></th>
-        <th><input type="number" id="colT2" class="targetIn" value="" /></th>
-        <th><input type="number" id="colT3" class="targetIn" value="" /></th>
-        <th><input type="number" id="colT4" class="targetIn" value="" /></th>
-      </tr>
-      <tr>
-        <th><input type="number" id="rowT0" class="targetIn" value="" /></th>
-        <td><input type="number" id="cell00" class="cellIn" /></td>
-        <td><input type="number" id="cell01" class="cellIn" /></td>
-        <td><input type="number" id="cell02" class="cellIn" /></td>
-        <td><input type="number" id="cell03" class="cellIn" /></td>
-        <td><input type="number" id="cell04" class="cellIn" /></td>
-      </tr>
-      <tr>
-        <th><input type="number" id="rowT1" class="targetIn" value="" /></th>
-        <td><input type="number" id="cell10" class="cellIn" /></td>
-        <td><input type="number" id="cell11" class="cellIn" /></td>
-        <td><input type="number" id="cell12" class="cellIn" /></td>
-        <td><input type="number" id="cell13" class="cellIn" /></td>
-        <td><input type="number" id="cell14" class="cellIn" /></td>
-      </tr>
-      <tr>
-        <th><input type="number" id="rowT2" class="targetIn" value="" /></th>
-        <td><input type="number" id="cell20" class="cellIn" /></td>
-        <td><input type="number" id="cell21" class="cellIn" /></td>
-        <td><input type="number" id="cell22" class="cellIn" /></td>
-        <td><input type="number" id="cell23" class="cellIn" /></td>
-        <td><input type="number" id="cell24" class="cellIn" /></td>
-      </tr>
-      <tr>
-        <th><input type="number" id="rowT3" class="targetIn" value="" /></th>
-        <td><input type="number" id="cell30" class="cellIn" /></td>
-        <td><input type="number" id="cell31" class="cellIn" /></td>
-        <td><input type="number" id="cell32" class="cellIn" /></td>
-        <td><input type="number" id="cell33" class="cellIn" /></td>
-        <td><input type="number" id="cell34" class="cellIn" /></td>
-      </tr>
-      <tr>
-        <th><input type="number" id="rowT4" class="targetIn" value="" /></th>
-        <td><input type="number" id="cell40" class="cellIn" /></td>
-        <td><input type="number" id="cell41" class="cellIn" /></td>
-        <td><input type="number" id="cell42" class="cellIn" /></td>
-        <td><input type="number" id="cell43" class="cellIn" /></td>
-        <td><input type="number" id="cell44" class="cellIn" /></td>
-      </tr>
-    </table>
-    <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
-      <button id="btnCopiarActual">Copiar tablero actual</button>
-  <button id="btnResolver">Resolver</button>
-  <button id="btnAplicarSol">Aplicar solución (marcar)</button>
-  <button id="btnCargarEnJuego">Cargar en juego</button>
-      <span id="solverMsg" style="margin-left:8px; font-weight:600"></span>
+    <!-- Sección 5x5 -->
+    <div id="solverArea" class="hidden">
+      <h2>Solucionador (5x5) — carga manual del tablero</h2>
+      <p>Introduce los 25 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
+      <h3>Tablero para jugar</h3>
+      <p>Después de cargar, podrás jugar haciendo click en las celdas para activar/desactivar.</p>
+      <div id="tablero" class="hidden"></div>
+      <div id="mensaje" class="hidden"></div>
+      <table id="solverGrid">
+        <tr>
+          <th></th>
+          <th><input type="number" id="colT0" class="targetIn" value="" /></th>
+          <th><input type="number" id="colT1" class="targetIn" value="" /></th>
+          <th><input type="number" id="colT2" class="targetIn" value="" /></th>
+          <th><input type="number" id="colT3" class="targetIn" value="" /></th>
+          <th><input type="number" id="colT4" class="targetIn" value="" /></th>
+        </tr>
+        <tr>
+          <th><input type="number" id="rowT0" class="targetIn" value="" /></th>
+          <td><input type="number" id="cell00" class="cellIn" /></td>
+          <td><input type="number" id="cell01" class="cellIn" /></td>
+          <td><input type="number" id="cell02" class="cellIn" /></td>
+          <td><input type="number" id="cell03" class="cellIn" /></td>
+          <td><input type="number" id="cell04" class="cellIn" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="rowT1" class="targetIn" value="" /></th>
+          <td><input type="number" id="cell10" class="cellIn" /></td>
+          <td><input type="number" id="cell11" class="cellIn" /></td>
+          <td><input type="number" id="cell12" class="cellIn" /></td>
+          <td><input type="number" id="cell13" class="cellIn" /></td>
+          <td><input type="number" id="cell14" class="cellIn" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="rowT2" class="targetIn" value="" /></th>
+          <td><input type="number" id="cell20" class="cellIn" /></td>
+          <td><input type="number" id="cell21" class="cellIn" /></td>
+          <td><input type="number" id="cell22" class="cellIn" /></td>
+          <td><input type="number" id="cell23" class="cellIn" /></td>
+          <td><input type="number" id="cell24" class="cellIn" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="rowT3" class="targetIn" value="" /></th>
+          <td><input type="number" id="cell30" class="cellIn" /></td>
+          <td><input type="number" id="cell31" class="cellIn" /></td>
+          <td><input type="number" id="cell32" class="cellIn" /></td>
+          <td><input type="number" id="cell33" class="cellIn" /></td>
+          <td><input type="number" id="cell34" class="cellIn" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="rowT4" class="targetIn" value="" /></th>
+          <td><input type="number" id="cell40" class="cellIn" /></td>
+          <td><input type="number" id="cell41" class="cellIn" /></td>
+          <td><input type="number" id="cell42" class="cellIn" /></td>
+          <td><input type="number" id="cell43" class="cellIn" /></td>
+          <td><input type="number" id="cell44" class="cellIn" /></td>
+        </tr>
+      </table>
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+        <button id="btnResolver">Resolver</button>
+        <button id="btnCargarEnJuego">Cargar en juego</button>
+        <span id="solverMsg" style="margin-left:8px; font-weight:600"></span>
+      </div>
+    </div>
+
+    <!-- Sección 6x6 (backtracking simple) -->
+    <div id="solver6Area" class="hidden">
+      <h2>Solucionador (6x6) — backtracking simple</h2>
+      <p>Introduce los 36 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
+      <table id="solver6Grid">
+        <tr>
+          <th></th>
+          <th><input type="number" id="col6T0" class="target6In" /></th>
+          <th><input type="number" id="col6T1" class="target6In" /></th>
+          <th><input type="number" id="col6T2" class="target6In" /></th>
+          <th><input type="number" id="col6T3" class="target6In" /></th>
+          <th><input type="number" id="col6T4" class="target6In" /></th>
+          <th><input type="number" id="col6T5" class="target6In" /></th>
+        </tr>
+        <tr>
+          <th><input type="number" id="row6T0" class="target6In" /></th>
+          <td><input type="number" id="cell600" class="cell6In" /></td>
+          <td><input type="number" id="cell601" class="cell6In" /></td>
+          <td><input type="number" id="cell602" class="cell6In" /></td>
+          <td><input type="number" id="cell603" class="cell6In" /></td>
+          <td><input type="number" id="cell604" class="cell6In" /></td>
+          <td><input type="number" id="cell605" class="cell6In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row6T1" class="target6In" /></th>
+          <td><input type="number" id="cell610" class="cell6In" /></td>
+          <td><input type="number" id="cell611" class="cell6In" /></td>
+          <td><input type="number" id="cell612" class="cell6In" /></td>
+          <td><input type="number" id="cell613" class="cell6In" /></td>
+          <td><input type="number" id="cell614" class="cell6In" /></td>
+          <td><input type="number" id="cell615" class="cell6In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row6T2" class="target6In" /></th>
+          <td><input type="number" id="cell620" class="cell6In" /></td>
+          <td><input type="number" id="cell621" class="cell6In" /></td>
+          <td><input type="number" id="cell622" class="cell6In" /></td>
+          <td><input type="number" id="cell623" class="cell6In" /></td>
+          <td><input type="number" id="cell624" class="cell6In" /></td>
+          <td><input type="number" id="cell625" class="cell6In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row6T3" class="target6In" /></th>
+          <td><input type="number" id="cell630" class="cell6In" /></td>
+          <td><input type="number" id="cell631" class="cell6In" /></td>
+          <td><input type="number" id="cell632" class="cell6In" /></td>
+          <td><input type="number" id="cell633" class="cell6In" /></td>
+          <td><input type="number" id="cell634" class="cell6In" /></td>
+          <td><input type="number" id="cell635" class="cell6In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row6T4" class="target6In" /></th>
+          <td><input type="number" id="cell640" class="cell6In" /></td>
+          <td><input type="number" id="cell641" class="cell6In" /></td>
+          <td><input type="number" id="cell642" class="cell6In" /></td>
+          <td><input type="number" id="cell643" class="cell6In" /></td>
+          <td><input type="number" id="cell644" class="cell6In" /></td>
+          <td><input type="number" id="cell645" class="cell6In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row6T5" class="target6In" /></th>
+          <td><input type="number" id="cell650" class="cell6In" /></td>
+          <td><input type="number" id="cell651" class="cell6In" /></td>
+          <td><input type="number" id="cell652" class="cell6In" /></td>
+          <td><input type="number" id="cell653" class="cell6In" /></td>
+          <td><input type="number" id="cell654" class="cell6In" /></td>
+          <td><input type="number" id="cell655" class="cell6In" /></td>
+        </tr>
+      </table>
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+        <button id="btnResolver6">Resolver (6x6)</button>
+        <button id="btnCargar6EnJuego">Cargar 6x6 en juego</button>
+        <span id="solver6Msg" style="margin-left:8px; font-weight:600"></span>
+      </div>
+    </div>
+
+    <!-- Sección 7x7 (backtracking simple) -->
+    <div id="solver7Area" class="hidden">
+      <h2>Solucionador (7x7) — backtracking simple</h2>
+      <p>Introduce los 49 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
+      <table id="solver7Grid">
+        <tr>
+          <th></th>
+          <th><input type="number" id="col7T0" class="target7In" /></th>
+          <th><input type="number" id="col7T1" class="target7In" /></th>
+          <th><input type="number" id="col7T2" class="target7In" /></th>
+          <th><input type="number" id="col7T3" class="target7In" /></th>
+          <th><input type="number" id="col7T4" class="target7In" /></th>
+          <th><input type="number" id="col7T5" class="target7In" /></th>
+          <th><input type="number" id="col7T6" class="target7In" /></th>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T0" class="target7In" /></th>
+          <td><input type="number" id="cell700" class="cell7In" /></td>
+          <td><input type="number" id="cell701" class="cell7In" /></td>
+          <td><input type="number" id="cell702" class="cell7In" /></td>
+          <td><input type="number" id="cell703" class="cell7In" /></td>
+          <td><input type="number" id="cell704" class="cell7In" /></td>
+          <td><input type="number" id="cell705" class="cell7In" /></td>
+          <td><input type="number" id="cell706" class="cell7In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T1" class="target7In" /></th>
+          <td><input type="number" id="cell710" class="cell7In" /></td>
+          <td><input type="number" id="cell711" class="cell7In" /></td>
+          <td><input type="number" id="cell712" class="cell7In" /></td>
+          <td><input type="number" id="cell713" class="cell7In" /></td>
+          <td><input type="number" id="cell714" class="cell7In" /></td>
+          <td><input type="number" id="cell715" class="cell7In" /></td>
+          <td><input type="number" id="cell716" class="cell7In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T2" class="target7In" /></th>
+          <td><input type="number" id="cell720" class="cell7In" /></td>
+          <td><input type="number" id="cell721" class="cell7In" /></td>
+          <td><input type="number" id="cell722" class="cell7In" /></td>
+          <td><input type="number" id="cell723" class="cell7In" /></td>
+          <td><input type="number" id="cell724" class="cell7In" /></td>
+          <td><input type="number" id="cell725" class="cell7In" /></td>
+          <td><input type="number" id="cell726" class="cell7In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T3" class="target7In" /></th>
+          <td><input type="number" id="cell730" class="cell7In" /></td>
+          <td><input type="number" id="cell731" class="cell7In" /></td>
+          <td><input type="number" id="cell732" class="cell7In" /></td>
+          <td><input type="number" id="cell733" class="cell7In" /></td>
+          <td><input type="number" id="cell734" class="cell7In" /></td>
+          <td><input type="number" id="cell735" class="cell7In" /></td>
+          <td><input type="number" id="cell736" class="cell7In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T4" class="target7In" /></th>
+          <td><input type="number" id="cell740" class="cell7In" /></td>
+          <td><input type="number" id="cell741" class="cell7In" /></td>
+          <td><input type="number" id="cell742" class="cell7In" /></td>
+          <td><input type="number" id="cell743" class="cell7In" /></td>
+          <td><input type="number" id="cell744" class="cell7In" /></td>
+          <td><input type="number" id="cell745" class="cell7In" /></td>
+          <td><input type="number" id="cell746" class="cell7In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T5" class="target7In" /></th>
+          <td><input type="number" id="cell750" class="cell7In" /></td>
+          <td><input type="number" id="cell751" class="cell7In" /></td>
+          <td><input type="number" id="cell752" class="cell7In" /></td>
+          <td><input type="number" id="cell753" class="cell7In" /></td>
+          <td><input type="number" id="cell754" class="cell7In" /></td>
+          <td><input type="number" id="cell755" class="cell7In" /></td>
+          <td><input type="number" id="cell756" class="cell7In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row7T6" class="target7In" /></th>
+          <td><input type="number" id="cell760" class="cell7In" /></td>
+          <td><input type="number" id="cell761" class="cell7In" /></td>
+          <td><input type="number" id="cell762" class="cell7In" /></td>
+          <td><input type="number" id="cell763" class="cell7In" /></td>
+          <td><input type="number" id="cell764" class="cell7In" /></td>
+          <td><input type="number" id="cell765" class="cell7In" /></td>
+          <td><input type="number" id="cell766" class="cell7In" /></td>
+        </tr>
+      </table>
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+        <button id="btnResolver7">Resolver (7x7)</button>
+        <button id="btnCargar7EnJuego">Cargar 7x7 en juego</button>
+        <span id="solver7Msg" style="margin-left:8px; font-weight:600"></span>
+      </div>
+    </div>
+
+    <!-- Sección 8x8 (backtracking simple) -->
+    <div id="solver8Area" class="hidden">
+      <h2>Solucionador (8x8) — backtracking simple</h2>
+      <p>Introduce los 64 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
+      <table id="solver8Grid">
+        <tr>
+          <th></th>
+          <th><input type="number" id="col8T0" class="target8In" /></th>
+          <th><input type="number" id="col8T1" class="target8In" /></th>
+          <th><input type="number" id="col8T2" class="target8In" /></th>
+          <th><input type="number" id="col8T3" class="target8In" /></th>
+          <th><input type="number" id="col8T4" class="target8In" /></th>
+          <th><input type="number" id="col8T5" class="target8In" /></th>
+          <th><input type="number" id="col8T6" class="target8In" /></th>
+          <th><input type="number" id="col8T7" class="target8In" /></th>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T0" class="target8In" /></th>
+          <td><input type="number" id="cell800" class="cell8In" /></td>
+          <td><input type="number" id="cell801" class="cell8In" /></td>
+          <td><input type="number" id="cell802" class="cell8In" /></td>
+          <td><input type="number" id="cell803" class="cell8In" /></td>
+          <td><input type="number" id="cell804" class="cell8In" /></td>
+          <td><input type="number" id="cell805" class="cell8In" /></td>
+          <td><input type="number" id="cell806" class="cell8In" /></td>
+          <td><input type="number" id="cell807" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T1" class="target8In" /></th>
+          <td><input type="number" id="cell810" class="cell8In" /></td>
+          <td><input type="number" id="cell811" class="cell8In" /></td>
+          <td><input type="number" id="cell812" class="cell8In" /></td>
+          <td><input type="number" id="cell813" class="cell8In" /></td>
+          <td><input type="number" id="cell814" class="cell8In" /></td>
+          <td><input type="number" id="cell815" class="cell8In" /></td>
+          <td><input type="number" id="cell816" class="cell8In" /></td>
+          <td><input type="number" id="cell817" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T2" class="target8In" /></th>
+          <td><input type="number" id="cell820" class="cell8In" /></td>
+          <td><input type="number" id="cell821" class="cell8In" /></td>
+          <td><input type="number" id="cell822" class="cell8In" /></td>
+          <td><input type="number" id="cell823" class="cell8In" /></td>
+          <td><input type="number" id="cell824" class="cell8In" /></td>
+          <td><input type="number" id="cell825" class="cell8In" /></td>
+          <td><input type="number" id="cell826" class="cell8In" /></td>
+          <td><input type="number" id="cell827" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T3" class="target8In" /></th>
+          <td><input type="number" id="cell830" class="cell8In" /></td>
+          <td><input type="number" id="cell831" class="cell8In" /></td>
+          <td><input type="number" id="cell832" class="cell8In" /></td>
+          <td><input type="number" id="cell833" class="cell8In" /></td>
+          <td><input type="number" id="cell834" class="cell8In" /></td>
+          <td><input type="number" id="cell835" class="cell8In" /></td>
+          <td><input type="number" id="cell836" class="cell8In" /></td>
+          <td><input type="number" id="cell837" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T4" class="target8In" /></th>
+          <td><input type="number" id="cell840" class="cell8In" /></td>
+          <td><input type="number" id="cell841" class="cell8In" /></td>
+          <td><input type="number" id="cell842" class="cell8In" /></td>
+          <td><input type="number" id="cell843" class="cell8In" /></td>
+          <td><input type="number" id="cell844" class="cell8In" /></td>
+          <td><input type="number" id="cell845" class="cell8In" /></td>
+          <td><input type="number" id="cell846" class="cell8In" /></td>
+          <td><input type="number" id="cell847" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T5" class="target8In" /></th>
+          <td><input type="number" id="cell850" class="cell8In" /></td>
+          <td><input type="number" id="cell851" class="cell8In" /></td>
+          <td><input type="number" id="cell852" class="cell8In" /></td>
+          <td><input type="number" id="cell853" class="cell8In" /></td>
+          <td><input type="number" id="cell854" class="cell8In" /></td>
+          <td><input type="number" id="cell855" class="cell8In" /></td>
+          <td><input type="number" id="cell856" class="cell8In" /></td>
+          <td><input type="number" id="cell857" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T6" class="target8In" /></th>
+          <td><input type="number" id="cell860" class="cell8In" /></td>
+          <td><input type="number" id="cell861" class="cell8In" /></td>
+          <td><input type="number" id="cell862" class="cell8In" /></td>
+          <td><input type="number" id="cell863" class="cell8In" /></td>
+          <td><input type="number" id="cell864" class="cell8In" /></td>
+          <td><input type="number" id="cell865" class="cell8In" /></td>
+          <td><input type="number" id="cell866" class="cell8In" /></td>
+          <td><input type="number" id="cell867" class="cell8In" /></td>
+        </tr>
+        <tr>
+          <th><input type="number" id="row8T7" class="target8In" /></th>
+          <td><input type="number" id="cell870" class="cell8In" /></td>
+          <td><input type="number" id="cell871" class="cell8In" /></td>
+          <td><input type="number" id="cell872" class="cell8In" /></td>
+          <td><input type="number" id="cell873" class="cell8In" /></td>
+          <td><input type="number" id="cell874" class="cell8In" /></td>
+          <td><input type="number" id="cell875" class="cell8In" /></td>
+          <td><input type="number" id="cell876" class="cell8In" /></td>
+          <td><input type="number" id="cell877" class="cell8In" /></td>
+        </tr>
+      </table>
+      <div style="margin-top:8px; display:flex; gap:8px; align-items:center">
+        <button id="btnResolver8">Resolver (8x8)</button>
+        <button id="btnCargar8EnJuego">Cargar 8x8 en juego</button>
+        <span id="solver8Msg" style="margin-left:8px; font-weight:600"></span>
+      </div>
     </div>
   </div>
 
   <script src="script.js"></script>
 </body>
 </html>
-
 
 
