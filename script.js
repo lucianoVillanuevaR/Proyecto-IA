@@ -31,7 +31,6 @@ function mostrarSolucionEnUI(mask) {
 }
 
 function encontrarSolucion5x5(nums, rowT, colT) {
-  // exigir objetivos completos
   for (let i = 0; i < 5; i++) if (rowT[i] === null || colT[i] === null) return null;
 
   const ROWS = 5, COLS = 5;
@@ -97,8 +96,10 @@ function encontrarSolucion5x5(nums, rowT, colT) {
 function dibujarTablero(div, datos) {
   const { numeros, sumasFilas, sumasColumnas, seleccion } = datos;
   const filas = numeros.length, columnas = numeros[0].length;
+  if ((!datos.seleccion || datos.seleccion.length !== filas) && datos.solucion) {
+    datos.seleccion = datos.solucion.map(row => row.map(cell => !!cell));
+  }
   let html = '<table>';
-  // top-left empty
   html += '<tr><th></th>';
   for (let c = 0; c < columnas; c++) {
     html += `<th class="target" data-col="${c}">${sumasColumnas[c]}<div class="curSum" data-col-sum="${c}"></div></th>`;
@@ -170,13 +171,17 @@ document.getElementById('btnResolver').addEventListener('click', () => {
   const solverMsg = document.getElementById('solverMsg');
   solverMsg.textContent = 'Buscando...';
   setTimeout(() => {
+    window._nodesVisited = 0;
+    const t0 = performance.now();
     const sol = backtrackSolve(nums, rowT, colT);
+    const t1 = performance.now();
+    const nodes = window._nodesVisited || 0;
     if (!sol) {
-      solverMsg.textContent = 'No se encontró solución (o faltan objetivos).';
+      solverMsg.textContent = `No se encontró solución (o faltan objetivos). Tiempo ${(t1 - t0).toFixed(2)} ms. Nodos ${nodes}`;
       mostrarSolucionEnUI(null);
       window.lastSolution5x5 = null;
     } else {
-      solverMsg.textContent = 'Solución encontrada.';
+      solverMsg.textContent = `Solución encontrada. Tiempo ${(t1 - t0).toFixed(2)} ms. Nodos ${nodes}`;
       window.lastSolution5x5 = sol;
       mostrarSolucionEnUI(sol);
     }
@@ -187,25 +192,33 @@ document.getElementById('btnResolver').addEventListener('click', () => {
 document.getElementById('btnCargarEnJuego').addEventListener('click', () => {
   const solverMsg = document.getElementById('solverMsg');
   const { nums, rowT, colT } = leerTablero5x5DesdeUI();
-  // validar objetivos
   for (let i = 0; i < 5; i++) {
     if (rowT[i] === null || colT[i] === null) {
       solverMsg.textContent = 'Rellena los 5 objetivos de filas y columnas antes de cargar.';
       return;
     }
   }
+
+  for (let r = 0; r < 5; r++) {
+    for (let c = 0; c < 5; c++) {
+      if (nums[r][c] < 0) { solverMsg.textContent = 'No se permiten números negativos en las celdas.'; return; }
+    }
+    if (rowT[r] !== null && rowT[r] < 0) { solverMsg.textContent = 'No se permiten objetivos de fila negativos.'; return; }
+    if (colT[r] !== null && colT[r] < 0) { solverMsg.textContent = 'No se permiten objetivos de columna negativos.'; return; }
+  }
+  const sol5 = window.lastSolution5x5 || null;
+  const seleccion5 = sol5 ? sol5.map(row => row.map(cell => !!cell)) : Array.from({ length: 5 }, () => Array(5).fill(true));
   const datos = {
     numeros: nums,
     sumasFilas: rowT.slice(),
     sumasColumnas: colT.slice(),
-    seleccion: Array.from({ length: 5 }, () => Array(5).fill(true)),
-    solucion: window.lastSolution5x5 || Array.from({ length: 5 }, () => Array(5).fill(false))
+    seleccion: seleccion5,
+    solucion: sol5 || Array.from({ length: 5 }, () => Array(5).fill(false))
   };
   window.rulloDatos = datos;
   dibujarTablero(document.getElementById('tablero'), datos);
   document.getElementById('solverMsg').textContent = 'Tablero cargado en el área jugable.';
 });
-// Simpler, explicit helpers for 6x6, 7x7, 8x8 to keep code straightforward
 
 function leerTablero6() {
   const n = 6;
@@ -274,6 +287,8 @@ function backtrackSolve(nums, rowT, colT) {
   function remPot(start) { const r = Array(N).fill(0), c = Array(N).fill(0); for (let p = start; p < N*N; p++) { const rr = Math.floor(p/N), cc = p%N; r[rr]+=nums[rr][cc]; c[cc]+=nums[rr][cc]; } return {r,c}; }
 
   function bt(pos) {
+    if (typeof window._nodesVisited === 'undefined') window._nodesVisited = 0;
+    window._nodesVisited++;
     if (found) return true; if (pos === N*N) { if (rSum.every((s,i)=>s===rowT[i]) && cSum.every((s,i)=>s===colT[i])) { found = mask.map(r=>r.slice()); return true; } return false; }
     const rr = Math.floor(pos/N), cc = pos%N, val = nums[rr][cc]; const pot = remPot(pos);
     if (rSum[rr]+pot.r[rr] >= rowT[rr] && cSum[cc]+pot.c[cc] >= colT[cc]) if (bt(pos+1)) return true;
@@ -287,14 +302,20 @@ function backtrackSolve(nums, rowT, colT) {
   bt(0); return found;
 }
 
-const btnR6 = document.getElementById('btnResolver6'); if (btnR6) btnR6.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero6(); const m=document.getElementById('solver6Msg'); m.textContent='Buscando...'; setTimeout(()=>{ const sol=backtrackSolve(nums,rowT,colT); if(!sol){ m.textContent='No se encontró solución.'; window.lastSolution6x6=null; mostrarSolucion6(null);} else { m.textContent='Solución encontrada.'; window.lastSolution6x6=sol; mostrarSolucion6(sol);} },10); });
-const btnC6 = document.getElementById('btnCargar6EnJuego'); if (btnC6) btnC6.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero6(); const m=document.getElementById('solver6Msg'); for(let i=0;i<6;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 6 objetivos antes de cargar.'; return;} const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:Array.from({length:6},()=>Array(6).fill(true)),solucion:window.lastSolution6x6||Array.from({length:6},()=>Array(6).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 6x6 cargado en el área jugable.'; });
+const btnR6 = document.getElementById('btnResolver6'); if (btnR6) btnR6.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero6(); const m=document.getElementById('solver6Msg'); m.textContent='Buscando...'; setTimeout(()=>{ window._nodesVisited=0; const t0=performance.now(); const sol=backtrackSolve(nums,rowT,colT); const t1=performance.now(); const nodes=window._nodesVisited||0; if(!sol){ m.textContent=`No se encontró solución. Tiempo ${(t1-t0).toFixed(2)} ms. Nodos ${nodes}`; window.lastSolution6x6=null; mostrarSolucion6(null);} else { m.textContent=`Solución encontrada. Tiempo ${(t1-t0).toFixed(2)} ms. Nodos ${nodes}`; window.lastSolution6x6=sol; mostrarSolucion6(sol);} },10); });
+const btnC6 = document.getElementById('btnCargar6EnJuego'); if (btnC6) btnC6.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero6(); const m=document.getElementById('solver6Msg'); for(let i=0;i<6;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 6 objetivos antes de cargar.'; return;} // validar negativos
+  for (let r=0;r<6;r++){ for (let c=0;c<6;c++){ if (nums[r][c]<0){ m.textContent='No se permiten números negativos en las celdas.'; return; } } if (rowT[r]!==null && rowT[r]<0){ m.textContent='No se permiten objetivos de fila negativos.'; return;} if (colT[r]!==null && colT[r]<0){ m.textContent='No se permiten objetivos de columna negativos.'; return;} }
+  const sol = window.lastSolution6x6 || null; const seleccion = sol ? sol.map(row=>row.map(cell=>!!cell)) : Array.from({length:6},()=>Array(6).fill(true)); const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:seleccion,solucion:sol||Array.from({length:6},()=>Array(6).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 6x6 cargado en el área jugable.'; });
 
-const btnR7 = document.getElementById('btnResolver7'); if (btnR7) btnR7.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero7(); const m=document.getElementById('solver7Msg'); m.textContent='Buscando...'; setTimeout(()=>{ const sol=backtrackSolve(nums,rowT,colT); if(!sol){ m.textContent='No se encontró solución.'; window.lastSolution7x7=null; mostrarSolucion7(null);} else { m.textContent='Solución encontrada.'; window.lastSolution7x7=sol; mostrarSolucion7(sol);} },10); });
-const btnC7 = document.getElementById('btnCargar7EnJuego'); if (btnC7) btnC7.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero7(); const m=document.getElementById('solver7Msg'); for(let i=0;i<7;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 7 objetivos antes de cargar.'; return;} const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:Array.from({length:7},()=>Array(7).fill(true)),solucion:window.lastSolution7x7||Array.from({length:7},()=>Array(7).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 7x7 cargado en el área jugable.'; });
+const btnR7 = document.getElementById('btnResolver7'); if (btnR7) btnR7.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero7(); const m=document.getElementById('solver7Msg'); m.textContent='Buscando...'; setTimeout(()=>{ window._nodesVisited=0; const t0=performance.now(); const sol=backtrackSolve(nums,rowT,colT); const t1=performance.now(); const nodes=window._nodesVisited||0; if(!sol){ m.textContent=`No se encontró solución. Tiempo ${(t1-t0).toFixed(2)} ms. Nodos ${nodes}`; window.lastSolution7x7=null; mostrarSolucion7(null);} else { m.textContent=`Solución encontrada. Tiempo ${(t1-t0).toFixed(2)} ms. Nodos ${nodes}`; window.lastSolution7x7=sol; mostrarSolucion7(sol);} },10); });
+const btnC7 = document.getElementById('btnCargar7EnJuego'); if (btnC7) btnC7.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero7(); const m=document.getElementById('solver7Msg'); for(let i=0;i<7;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 7 objetivos antes de cargar.'; return;} // validar negativos
+  for (let r=0;r<7;r++){ for (let c=0;c<7;c++){ if (nums[r][c]<0){ m.textContent='No se permiten números negativos en las celdas.'; return; } } if (rowT[r]!==null && rowT[r]<0){ m.textContent='No se permiten objetivos de fila negativos.'; return;} if (colT[r]!==null && colT[r]<0){ m.textContent='No se permiten objetivos de columna negativos.'; return;} }
+  const sol = window.lastSolution7x7 || null; const seleccion = sol ? sol.map(row=>row.map(cell=>!!cell)) : Array.from({length:7},()=>Array(7).fill(true)); const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:seleccion,solucion:sol||Array.from({length:7},()=>Array(7).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 7x7 cargado en el área jugable.'; });
 
-const btnR8 = document.getElementById('btnResolver8'); if (btnR8) btnR8.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero8(); const m=document.getElementById('solver8Msg'); m.textContent='Buscando...'; setTimeout(()=>{ const sol=backtrackSolve(nums,rowT,colT); if(!sol){ m.textContent='No se encontró solución.'; window.lastSolution8x8=null; mostrarSolucion8(null);} else { m.textContent='Solución encontrada.'; window.lastSolution8x8=sol; mostrarSolucion8(sol);} },10); });
-const btnC8 = document.getElementById('btnCargar8EnJuego'); if (btnC8) btnC8.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero8(); const m=document.getElementById('solver8Msg'); for(let i=0;i<8;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 8 objetivos antes de cargar.'; return;} const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:Array.from({length:8},()=>Array(8).fill(true)),solucion:window.lastSolution8x8||Array.from({length:8},()=>Array(8).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 8x8 cargado en el área jugable.'; });
+const btnR8 = document.getElementById('btnResolver8'); if (btnR8) btnR8.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero8(); const m=document.getElementById('solver8Msg'); m.textContent='Buscando...'; setTimeout(()=>{ window._nodesVisited=0; const t0=performance.now(); const sol=backtrackSolve(nums,rowT,colT); const t1=performance.now(); const nodes=window._nodesVisited||0; if(!sol){ m.textContent=`No se encontró solución. Tiempo ${(t1-t0).toFixed(2)} ms. Nodos ${nodes}`; window.lastSolution8x8=null; mostrarSolucion8(null);} else { m.textContent=`Solución encontrada. Tiempo ${(t1-t0).toFixed(2)} ms. Nodos ${nodes}`; window.lastSolution8x8=sol; mostrarSolucion8(sol);} },10); });
+const btnC8 = document.getElementById('btnCargar8EnJuego'); if (btnC8) btnC8.addEventListener('click', ()=>{ const {nums,rowT,colT}=leerTablero8(); const m=document.getElementById('solver8Msg'); for(let i=0;i<8;i++) if(rowT[i]===null||colT[i]===null){ m.textContent='Rellena los 8 objetivos antes de cargar.'; return;} // validar negativos
+  for (let r=0;r<8;r++){ for (let c=0;c<8;c++){ if (nums[r][c]<0){ m.textContent='No se permiten números negativos en las celdas.'; return; } } if (rowT[r]!==null && rowT[r]<0){ m.textContent='No se permiten objetivos de fila negativos.'; return;} if (colT[r]!==null && colT[r]<0){ m.textContent='No se permiten objetivos de columna negativos.'; return;} }
+  const sol = window.lastSolution8x8 || null; const seleccion = sol ? sol.map(row=>row.map(cell=>!!cell)) : Array.from({length:8},()=>Array(8).fill(true)); const datos={numeros:nums,sumasFilas:rowT.slice(),sumasColumnas:colT.slice(),seleccion:seleccion,solucion:sol||Array.from({length:8},()=>Array(8).fill(false))}; window.rulloDatos=datos; dibujarTablero(document.getElementById('tablero'),datos); m.textContent='Tablero 8x8 cargado en el área jugable.'; });
 
 function hideAllSolverSections() {
   const ids = ['solverArea','solver6Area','solver7Area','solver8Area'];

@@ -7,8 +7,6 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-  <!-- Chooser inicial: el usuario elige el tamaño del tablero -->
   <div class="chooser" id="chooser">
     <div class="chooser-box">
       <h1>Rullo</h1>
@@ -20,16 +18,16 @@
   </div>
 
   <div class="page hidden" id="pageContent">
-    <div style="margin-bottom:12px"><button id="btnBack">Volver</button></div>
+  <div style="margin-bottom:12px"><button id="btnBack">Volver</button></div>
+  <div id="tablero" class="hidden"></div>
+  <div id="mensaje" class="hidden"></div>
 
-    <!-- Sección 5x5 -->
-    <div id="solverArea" class="hidden">
-      <h2>Solucionador (5x5) — carga manual del tablero</h2>
+  <div id="solverArea" class="hidden">
+      <h2>Solucionador (5x5)</h2>
       <p>Introduce los 25 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
       <h3>Tablero para jugar</h3>
       <p>Después de cargar, podrás jugar haciendo click en las celdas para activar/desactivar.</p>
-      <div id="tablero" class="hidden"></div>
-      <div id="mensaje" class="hidden"></div>
+      
       <table id="solverGrid">
         <tr>
           <th></th>
@@ -86,10 +84,8 @@
         <span id="solverMsg" style="margin-left:8px; font-weight:600"></span>
       </div>
     </div>
-
-    <!-- Sección 6x6 (backtracking simple) -->
     <div id="solver6Area" class="hidden">
-      <h2>Solucionador (6x6) — backtracking simple</h2>
+      <h2>Solucionador (6x6)</h2>
       <p>Introduce los 36 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
       <table id="solver6Grid">
         <tr>
@@ -163,9 +159,8 @@
       </div>
     </div>
 
-    <!-- Sección 7x7 (backtracking simple) -->
     <div id="solver7Area" class="hidden">
-      <h2>Solucionador (7x7) — backtracking simple</h2>
+      <h2>Solucionador (7x7)</h2>
       <p>Introduce los 49 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
       <table id="solver7Grid">
         <tr>
@@ -255,10 +250,8 @@
         <span id="solver7Msg" style="margin-left:8px; font-weight:600"></span>
       </div>
     </div>
-
-    <!-- Sección 8x8 (backtracking simple) -->
     <div id="solver8Area" class="hidden">
-      <h2>Solucionador (8x8) — backtracking simple</h2>
+      <h2>Solucionador (8x8)</h2>
       <p>Introduce los 64 números y los objetivos de fila/columna y pulsa <strong>Resolver</strong>.</p>
       <table id="solver8Grid">
         <tr>

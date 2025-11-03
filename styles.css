@@ -152,6 +152,13 @@ input[type="number"]:focus{
   background:#ffffff;
 }
 
+/* Visual highlight for solver inputs when marked as part of the solution */
+input.solution{
+  background: #dff7e6;
+  border-color: rgba(16,185,129,0.4);
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.08);
+}
+
 button{
   border:none;
   background: linear-gradient(180deg, var(--azul-500), var(--azul-700));
